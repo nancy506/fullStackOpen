@@ -1,8 +1,9 @@
 function Part(props) {
+  console.log(props.part);
   return (
     <div>
       <p>
-        {props.partname} {props.exercises}
+        {props.part.name} {props.part.exercises}
       </p>
     </div>
   );
