@@ -1,8 +1,11 @@
+import Button from './Button'
 
-const Person = ({ person }) => {
+const Person = ({ person, deleteEntry }) => {
   console.log(person)
   return (
-    <li>{person.name} {person.number}</li>
+    <li>{person.name} {person.number}
+      <Button onClick={() => deleteEntry(person.id)} text="delete" />
+    </li>
   )
 }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import phoneService from './services/phonebooks'
 import Persons from './components/Persons'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
@@ -10,33 +10,52 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
 
-  const hook = () => {
+  useEffect(() => {
     console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        console.log('promise fulfilled')
-        setPersons(response.data)
-      })
+    phoneService.getAll().then(initialPhonebook => {
+      setPersons(initialPhonebook)
+    }
+    )
     console.log('render', persons.length, 'persons')
-  }
-  useEffect(hook, [])
+  }, []);
 
   const addPerson = (event) => {
     event.preventDefault()
     const personObject = {
       name: newName,
       number: newNumber,
-      id: String(persons.length + 1),
     }
+    console.log(`personObject is ${newName} ${newNumber}`)
+    console.log(`personObject is ${personObject}`)
     if (persons.some(person => person.name === newName)) {
-      alert(`${newName} is already added to phonebook`);
-      setNewName('')
-      setNewNumber('')
+        const existingPerson = persons.find(person => person.name === newName)
+        console.log('existingPerson: ', existingPerson)
+        updatePersonNumber(existingPerson.id, personObject);
     } else {
-      setPersons(persons.concat(personObject))
+      phoneService
+        .create(personObject)
+        .then(returnedObject => {
+          setPersons(persons.concat(returnedObject))
+        })
     }
+    setNewName('')
+    setNewNumber('')
     console.log("persons:", persons)
+  }
+
+  const updatePersonNumber = (id, personObject) => {
+    if (window.confirm(`${personObject.name} is already added to the phonebook, replace the old number with a new one?`)) {
+      phoneService
+        .update(id, personObject)
+         .then(updatedPerson => {
+        console.log(`updated person with ${id} to ${personObject.name}, ${personObject.number}`)
+        console.log(`response data is ${updatedPerson}`)
+        setPersons(persons.map(person => person.id === id ? updatedPerson : person))
+        console.log(`updated persons ${persons}`)
+      })
+    } else {
+      console.log("update canceled!");
+    }
   }
 
   const handleNameChange = (event) => {
@@ -54,6 +73,25 @@ const App = () => {
     setNewFilter(event.target.value)
   }
 
+  const deleteEntry = id => {
+    const person = persons.find(p => p.id === id)
+    if (window.confirm(`Delete ${person.name}?`)) {
+      phoneService
+        .deleteEntry(id)
+        .then(response => {
+          console.log('success!')
+        })
+        .catch(error => {
+          alert(
+            `the person '${person.name}' was already deleted from server`
+          )
+        })
+      setPersons(persons.filter(p => p.id !== id));
+    } else {
+      console.log("deletion canceled!");
+    }
+  };
+
   return (
     <div>
       <h2>Phonebook</h2>
@@ -68,8 +106,9 @@ const App = () => {
       />
       <h2>Numbers</h2>
       <Persons
-       persons ={persons}
-       filter={newFilter}
+        persons={persons}
+        filter={newFilter}
+        deleteEntry={deleteEntry}
       />
     </div>
   )
