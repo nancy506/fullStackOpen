@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react'
-import phoneService from './services/phonebooks'
 import Persons from './components/Persons'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
+import Notification from './components/Notification'
+import phoneService from './services/phonebooks'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
+  const [newMessage, setNewMessage] = useState(null)
+  const [newMessageType, setNewMessageType] = useState(null)
+
 
   useEffect(() => {
     console.log('effect')
@@ -28,14 +32,24 @@ const App = () => {
     console.log(`personObject is ${newName} ${newNumber}`)
     console.log(`personObject is ${personObject}`)
     if (persons.some(person => person.name === newName)) {
-        const existingPerson = persons.find(person => person.name === newName)
-        console.log('existingPerson: ', existingPerson)
-        updatePersonNumber(existingPerson.id, personObject);
+      const existingPerson = persons.find(person => person.name === newName)
+      console.log('existingPerson: ', existingPerson)
+      updatePersonNumber(existingPerson.id, personObject);
     } else {
       phoneService
         .create(personObject)
         .then(returnedObject => {
-          setPersons(persons.concat(returnedObject))
+          setPersons(persons.concat(returnedObject));
+          setNewMessage(
+            `Added ${returnedObject.name}`
+          )
+          setNewMessageType(
+            'successMessage'
+          )
+          setTimeout(() => {
+            setNewMessage(null);
+            setNewMessageType(null);
+          }, 5000)
         })
     }
     setNewName('')
@@ -47,12 +61,21 @@ const App = () => {
     if (window.confirm(`${personObject.name} is already added to the phonebook, replace the old number with a new one?`)) {
       phoneService
         .update(id, personObject)
-         .then(updatedPerson => {
-        console.log(`updated person with ${id} to ${personObject.name}, ${personObject.number}`)
-        console.log(`response data is ${updatedPerson}`)
-        setPersons(persons.map(person => person.id === id ? updatedPerson : person))
-        console.log(`updated persons ${persons}`)
-      })
+        .then(updatedPerson => {
+          console.log(`updated person with ${id} to ${personObject.name}, ${personObject.number}`)
+          setPersons(persons.map(person => person.id === id ? updatedPerson : person));
+          setNewMessage(
+            `updated ${personObject.name}`
+          )
+          setNewMessageType(
+            'successMessage'
+          )
+          setTimeout(() => {
+            setNewMessage(null);
+            setNewMessageType(null);
+
+          }, 5000)
+        })
     } else {
       console.log("update canceled!");
     }
@@ -79,12 +102,30 @@ const App = () => {
       phoneService
         .deleteEntry(id)
         .then(response => {
-          console.log('success!')
+          console.log('success!');
+          setNewMessage(
+            `deleted ${person.name}`
+          );
+          console.log('set new message type!');
+          setNewMessageType(
+            'successMessage'
+          );
+          setTimeout(() => {
+            setNewMessage(null);
+            setNewMessageType(null);
+          }, 5000);
         })
         .catch(error => {
-          alert(
+          setNewMessage(
             `the person '${person.name}' was already deleted from server`
           )
+          setNewMessageType(
+            'errorMessage'
+          )
+          setTimeout(() => {
+            setNewMessage(null);
+            setNewMessageType(null);
+          }, 5000)
         })
       setPersons(persons.filter(p => p.id !== id));
     } else {
@@ -95,6 +136,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={newMessage} type={newMessageType} />
       <Filter value={newFilter} onChange={handleFilterChange} />
       <h2>Add a new</h2>
       <PersonForm
