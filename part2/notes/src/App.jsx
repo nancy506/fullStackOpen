@@ -20,7 +20,7 @@ const App = (props) => {
       .then(initialNotes => {
         setNotes(initialNotes)
       }
-    )
+      )
   }, [])
 
 
@@ -32,7 +32,7 @@ const App = (props) => {
     }
     noteService
       .create(noteObject)
-     .then(returnedNote => {
+      .then(returnedNote => {
         setNotes(notes.concat(returnedNote))
         setNewNote('')
       })
@@ -54,14 +54,14 @@ const App = (props) => {
         setNotes(notes.map(note => note.id === id ? returnedNote : note))
       })
       .catch(error => {
-      setErrorMessage(
+        setErrorMessage(
           `Note '${note.content}' was already removed from server`
         )
         setTimeout(() => {
           setErrorMessage(null)
         }, 5000)
-      setNotes(notes.filter(n => n.id !== id))
-    })
+        setNotes(notes.filter(n => n.id !== id))
+      })
   }
 
   const notesToShow = showAll
@@ -93,8 +93,7 @@ const App = (props) => {
         />
         <button type="submit">save</button>
       </form>
-            <Footer />
-
+      <Footer />
     </div>
   )
 }
