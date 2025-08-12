@@ -62,12 +62,12 @@ function App() {
           <Filter value={newFilter} onChange={handleFilterChange} text="find Countries " />
           <ul>
             {filteredCountryList.map((country) =>
-            (<>
+            (<li key={country.name.common} >
               <Country country={country} showDetail={false} />
               <button onClick={() => toggleShowDetail(country.name.common)}> show </button>
-            </>
+            </li>
             ))}
-        </ul>
+          </ul>
         </div>
       )
     case filteredCountryList.length === 1:
